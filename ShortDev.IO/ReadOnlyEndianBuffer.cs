@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace ShortDev.Networking;
+namespace ShortDev.IO;
 
 public ref struct ReadOnlyEndianBuffer
 {

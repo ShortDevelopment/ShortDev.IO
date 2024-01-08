@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ShortDev.Networking;
+namespace ShortDev.IO;
 
 public static class BinaryConvert
 {

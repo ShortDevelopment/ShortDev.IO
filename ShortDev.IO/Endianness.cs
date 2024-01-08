@@ -1,4 +1,4 @@
-﻿namespace ShortDev.Networking;
+﻿namespace ShortDev.IO;
 
 public enum Endianness
 {

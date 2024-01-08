@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace ShortDev.Networking;
+namespace ShortDev.IO;
 
 public static class Extensions
 {

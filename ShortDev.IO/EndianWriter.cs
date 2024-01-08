@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 using System.IO;
 using System.Text;
 
-namespace ShortDev.Networking;
+namespace ShortDev.IO;
 
 public readonly ref struct EndianWriter
 {

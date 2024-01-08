@@ -2,7 +2,7 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 
-namespace ShortDev.Networking;
+namespace ShortDev.IO;
 
 public readonly struct EndianBuffer : IBufferWriter<byte>
 {

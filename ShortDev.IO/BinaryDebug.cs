@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace ShortDev.Networking;
+namespace ShortDev.IO;
 
 public static class BinaryDebug
 {
