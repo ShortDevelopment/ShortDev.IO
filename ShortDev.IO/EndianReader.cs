@@ -99,6 +99,7 @@ public ref struct EndianReader
             return BinaryPrimitives.ReadUInt64BigEndian(buffer);
     }
 
+#if !NETSTANDARD
     public float ReadSingle()
     {
         Span<byte> buffer = stackalloc byte[sizeof(float)];
@@ -120,6 +121,7 @@ public ref struct EndianReader
         else
             return BinaryPrimitives.ReadDoubleBigEndian(buffer);
     }
+#endif
 
     public Guid ReadGuid()
     {

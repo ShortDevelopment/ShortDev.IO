@@ -7,7 +7,9 @@ public static class BinaryConvert
     // https://stackoverflow.com/questions/321370/how-can-i-convert-a-hex-string-to-a-byte-array
     public static void AsBytes(string hex, out int length, Span<byte> buffer)
     {
+#if !NETSTANDARD
         ArgumentNullException.ThrowIfNull(hex);
+#endif
 
         if (hex.Length % 2 == 1)
             throw new ArgumentException("Invalid hex string", nameof(hex));

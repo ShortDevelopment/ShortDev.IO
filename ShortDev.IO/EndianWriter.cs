@@ -111,6 +111,7 @@ public readonly ref struct EndianWriter
         Write(buffer);
     }
 
+#if !NETSTANDARD
     public void Write(float value)
     {
         Span<byte> buffer = stackalloc byte[sizeof(float)];
@@ -134,6 +135,7 @@ public readonly ref struct EndianWriter
 
         Write(buffer);
     }
+#endif
 
     public void Write(string value)
         => Write(value, DefaultEncoding);

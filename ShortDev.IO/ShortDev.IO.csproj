@@ -1,14 +1,26 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
-		<LangVersion>latest</LangVersion>
+		<TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+		<LangVersion>12</LangVersion>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<Version>0.1.0</Version>
+		<Authors>Lukas Kurz</Authors>
+		<PackageProjectUrl>https://github.com/SHortDevelopment/ShortDev.IO</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/SHortDevelopment/ShortDev.IO</RepositoryUrl>
+		<PackageIcon>icon.png</PackageIcon>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
+
 	<ItemGroup>
-		<PackageReference Include="System.Memory" Version="4.5.5" />
+		<None Include="../icon.png" Link="/nuget/icon.png" Pack="true" PackagePath="/" />
+		<None Include="../README.md" Link="/nuget/README.md" Pack="true" PackagePath="/" />
+		<None Include="../LICENSE.txt" Link="/nuget/LICENSE.txt" Pack="true" PackagePath="/" />
 	</ItemGroup>
 
 </Project>
