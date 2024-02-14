@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 
 namespace ShortDev.IO;
 
 public ref struct ReadOnlyEndianBuffer
 {
-    int _position = 0;
+    int _bufferPosition = 0;
 
     readonly ReadOnlySpan<byte> _buffer;
     readonly Stream? _stream;
@@ -21,12 +20,12 @@ public ref struct ReadOnlyEndianBuffer
     {
         if (_stream != null)
         {
-            ReadStreamInternal(buffer);
+            _stream.ReadExactly(buffer);
             return;
         }
 
-        _buffer.Slice(_position, buffer.Length).CopyTo(buffer);
-        _position += buffer.Length;
+        _buffer.Slice(_bufferPosition, buffer.Length).CopyTo(buffer);
+        _bufferPosition += buffer.Length;
     }
 
     public ReadOnlySpan<byte> ReadBytes(int length)
@@ -34,12 +33,12 @@ public ref struct ReadOnlyEndianBuffer
         if (_stream != null)
         {
             Span<byte> buffer = new byte[length];
-            ReadStreamInternal(buffer);
+            _stream.ReadExactly(buffer);
             return buffer;
         }
 
-        var slice = _buffer.Slice(_position, length);
-        _position += length;
+        var slice = _buffer.Slice(_bufferPosition, length);
+        _bufferPosition += length;
         return slice;
     }
 
@@ -54,9 +53,7 @@ public ref struct ReadOnlyEndianBuffer
             return (byte)buffer;
         }
 
-        var value = _buffer[_position];
-        _position++;
-        return value;
+        return _buffer[_bufferPosition++];
     }
 
     public readonly ReadOnlySpan<byte> AsSpan()
@@ -67,33 +64,15 @@ public ref struct ReadOnlyEndianBuffer
         return _buffer;
     }
 
+    public readonly long Length
+        => _stream?.Length ?? _buffer.Length;
+
+    public readonly long Position
+        => _stream?.Position ?? _bufferPosition;
+
+    public readonly bool IsAtEnd
+        => Length - Position > 0;
+
     public ReadOnlySpan<byte> ReadToEnd()
-    {
-        if (_stream != null)
-            throw new InvalidOperationException("Not supported by stream");
-
-        return ReadBytes(_buffer.Length - _position);
-    }
-
-    /// <summary>
-    /// <see href="https://github.com/dotnet/runtime/blob/56c84971041ae1debfa5ff360c547392d29f4cb3/src/libraries/System.Private.CoreLib/src/System/IO/BinaryReader.cs#L494-L506">BinaryReader.ReadBytes</see>
-    /// </summary>
-    readonly void ReadStreamInternal(Span<byte> buffer)
-    {
-        Debug.Assert(_stream != null);
-
-        int count = buffer.Length;
-        int numRead = 0;
-        do
-        {
-            int n = _stream.Read(buffer[numRead..]);
-            if (n == 0)
-                throw new EndOfStreamException();
-
-            numRead += n;
-            count -= n;
-        } while (count > 0);
-
-        Debug.Assert(numRead == buffer.Length);
-    }
+        => ReadBytes((int)(Length - Position));
 }
