@@ -67,8 +67,23 @@ public ref struct ReadOnlyEndianBuffer
     public readonly long Length
         => _stream?.Length ?? _buffer.Length;
 
-    public readonly long Position
-        => _stream?.Position ?? _bufferPosition;
+    public long Position
+    {
+        readonly get => _stream?.Position ?? _bufferPosition;
+        set
+        {
+            if (_stream != null)
+            {
+                _stream.Position = value;
+                return;
+            }
+
+            if (value < 0 || value >= Length)
+                throw new ArgumentOutOfRangeException(nameof(value));
+
+            _bufferPosition = (int)value;
+        }
+    }
 
     public readonly bool IsAtEnd
         => Length - Position <= 0;
