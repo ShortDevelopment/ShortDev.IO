@@ -1,4 +1,6 @@
-﻿namespace ShortDev.IO.Tests.Input;
+﻿using ShortDev.IO.Input;
+
+namespace ShortDev.IO.Tests.Input;
 
 public sealed class ReadOnlyEndianBufferTest
 {

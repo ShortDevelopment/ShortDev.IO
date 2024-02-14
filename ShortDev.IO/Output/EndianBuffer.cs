@@ -2,7 +2,7 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 
-namespace ShortDev.IO;
+namespace ShortDev.IO.Output;
 
 public readonly struct EndianBuffer : IBufferWriter<byte>
 {
@@ -38,7 +38,7 @@ public readonly struct EndianBuffer : IBufferWriter<byte>
         => _writer.WrittenSpan;
 
     public Span<byte> AsWriteableSpan()
-        => _writer.WrittenSpan.AsSpan();
+        => _writer.WrittenSpan.AsSpanUnsafe();
 
     public ReadOnlyMemory<byte> AsMemory()
         => _writer.WrittenMemory;

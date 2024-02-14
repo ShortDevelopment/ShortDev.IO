@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace ShortDev.IO;
+namespace ShortDev.IO.Input;
 
 public ref struct ReadOnlyEndianBuffer
 {
