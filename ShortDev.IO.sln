@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShortDev.IO", "ShortDev.IO\ShortDev.IO.csproj", "{4D993393-7084-48D5-8020-8071AB10E3F9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShortDev.IO.Tests", "ShortDev.IO.Tests\ShortDev.IO.Tests.csproj", "{F2526038-645D-4C6D-B162-934984E5984E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{4D993393-7084-48D5-8020-8071AB10E3F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D993393-7084-48D5-8020-8071AB10E3F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D993393-7084-48D5-8020-8071AB10E3F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2526038-645D-4C6D-B162-934984E5984E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2526038-645D-4C6D-B162-934984E5984E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2526038-645D-4C6D-B162-934984E5984E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2526038-645D-4C6D-B162-934984E5984E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
