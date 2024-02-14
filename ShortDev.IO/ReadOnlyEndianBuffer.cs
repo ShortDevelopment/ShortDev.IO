@@ -71,7 +71,7 @@ public ref struct ReadOnlyEndianBuffer
         => _stream?.Position ?? _bufferPosition;
 
     public readonly bool IsAtEnd
-        => Length - Position > 0;
+        => Length - Position <= 0;
 
     public ReadOnlySpan<byte> ReadToEnd()
         => ReadBytes((int)(Length - Position));
