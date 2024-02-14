@@ -78,7 +78,7 @@ public ref struct ReadOnlyEndianBuffer
                 return;
             }
 
-            if (value < 0 || value >= Length)
+            if (value < 0 || value > Length)
                 throw new ArgumentOutOfRangeException(nameof(value));
 
             _bufferPosition = (int)value;
