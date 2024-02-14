@@ -8,8 +8,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Version>0.1.0</Version>
-		<Authors>Lukas Kurz</Authors>
+		<Version>0.1.1</Version>
+		<Authors>ShortDevelopment</Authors>
 		<PackageProjectUrl>https://github.com/SHortDevelopment/ShortDev.IO</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/SHortDevelopment/ShortDev.IO</RepositoryUrl>
 		<PackageIcon>icon.png</PackageIcon>
