@@ -5,26 +5,21 @@ using System.Text;
 
 namespace ShortDev.IO.Output;
 
-public readonly ref struct EndianWriter
+public readonly ref struct EndianWriter(Endianness endianness, EndianBuffer buffer)
 {
     static readonly Encoding DefaultEncoding = Encoding.UTF8;
 
-    public readonly bool UseLittleEndian;
-    public readonly EndianBuffer Buffer;
+    public readonly bool UseLittleEndian = endianness == Endianness.LittleEndian;
+    public readonly EndianBuffer Buffer = buffer;
 
-    public EndianWriter() : this(Endianness.BigEndian) { }
+    public EndianWriter()
+        : this(Endianness.BigEndian) { }
 
     public EndianWriter(Endianness endianness)
-    {
-        UseLittleEndian = endianness == Endianness.LittleEndian;
-        Buffer = new();
-    }
+        : this(endianness, buffer: new()) { }
 
     public EndianWriter(Endianness endianness, int initialCapacity)
-    {
-        UseLittleEndian = endianness == Endianness.LittleEndian;
-        Buffer = new(initialCapacity);
-    }
+        : this(endianness, buffer: new(initialCapacity)) { }
 
     public void Clear()
         => Buffer.Clear();

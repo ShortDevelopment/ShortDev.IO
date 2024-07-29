@@ -8,7 +8,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Version>0.1.3</Version>
+		<Version>0.1.4</Version>
 		<Authors>ShortDevelopment</Authors>
 		<PackageProjectUrl>https://github.com/SHortDevelopment/ShortDev.IO</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/SHortDevelopment/ShortDev.IO</RepositoryUrl>

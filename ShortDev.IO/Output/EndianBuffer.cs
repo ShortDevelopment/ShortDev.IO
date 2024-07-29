@@ -14,10 +14,10 @@ public readonly struct EndianBuffer : IBufferWriter<byte>
     public EndianBuffer(int initialCapacity)
         => _writer = new(initialCapacity);
 
-    public EndianBuffer(byte[] data)
+    public EndianBuffer(ReadOnlySpan<byte> initialData)
     {
-        _writer = new(data.Length);
-        _writer.Write(data);
+        _writer = new(initialData.Length);
+        _writer.Write(initialData);
     }
 
     [SuppressMessage("Style", "IDE0302:Simplify collection initialization", Justification = "Seems like this allocates a new array instead of using stackalloc!")]
@@ -49,7 +49,7 @@ public readonly struct EndianBuffer : IBufferWriter<byte>
     public void Clear()
         => _writer.Clear();
 
-    void IBufferWriter<byte>.Advance(int count) => _writer.Advance(count);
-    Memory<byte> IBufferWriter<byte>.GetMemory(int sizeHint) => _writer.GetMemory(sizeHint);
-    Span<byte> IBufferWriter<byte>.GetSpan(int sizeHint) => _writer.GetSpan(sizeHint);
+    public void Advance(int count) => _writer.Advance(count);
+    public Memory<byte> GetMemory(int sizeHint) => _writer.GetMemory(sizeHint);
+    public Span<byte> GetSpan(int sizeHint) => _writer.GetSpan(sizeHint);
 }
