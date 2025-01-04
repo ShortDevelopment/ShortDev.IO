@@ -5,21 +5,12 @@ using System.Text;
 
 namespace ShortDev.IO.Input;
 
-public ref struct EndianReader
+public ref struct EndianReader(Endianness endianness, ReadOnlyEndianBuffer buffer)
 {
     static readonly Encoding DefaultEncoding = Encoding.UTF8;
 
-    public readonly bool UseLittleEndian;
-    public ReadOnlyEndianBuffer Buffer;
-
-    EndianReader(Endianness endianness)
-        => UseLittleEndian = endianness == Endianness.LittleEndian;
-
-    public EndianReader(Endianness endianness, ReadOnlySpan<byte> data) : this(endianness)
-        => Buffer = new(data);
-
-    public EndianReader(Endianness endianness, Stream stream) : this(endianness)
-        => Buffer = new(stream);
+    public readonly bool UseLittleEndian = endianness == Endianness.LittleEndian;
+    public ReadOnlyEndianBuffer Buffer = buffer;
 
     public ReadOnlySpan<byte> ReadToEnd()
         => Buffer.ReadToEnd();
@@ -99,7 +90,6 @@ public ref struct EndianReader
             return BinaryPrimitives.ReadUInt64BigEndian(buffer);
     }
 
-#if !NETSTANDARD
     public float ReadSingle()
     {
         Span<byte> buffer = stackalloc byte[sizeof(float)];
@@ -121,7 +111,6 @@ public ref struct EndianReader
         else
             return BinaryPrimitives.ReadDoubleBigEndian(buffer);
     }
-#endif
 
     public Guid ReadGuid()
     {
@@ -146,20 +135,9 @@ public ref struct EndianReader
         return ReadBytes(length);
     }
 
-    #region Utility methods
+    public static EndianReader Create(Endianness endianness, Stream stream)
+        => new(endianness, new(stream));
 
-    public static byte[] ReadToEnd(Stream stream)
-    {
-        var buffer = new byte[stream.Length];
-        Read(stream, buffer);
-        return buffer;
-    }
-
-    public static void Read(Stream stream, Span<byte> buffer)
-    {
-        ReadOnlyEndianBuffer reader = new(stream);
-        reader.ReadBytes(buffer);
-    }
-
-    #endregion
+    public static EndianReader Create(Endianness endianness, ReadOnlySpan<byte> buffer)
+        => new(endianness, new(buffer));
 }

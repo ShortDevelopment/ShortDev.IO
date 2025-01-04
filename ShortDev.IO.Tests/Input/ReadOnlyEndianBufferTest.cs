@@ -8,12 +8,12 @@ public sealed class ReadOnlyEndianBufferTest
     public void IsAtEnd_ShouldReturnTrue_WhenAtEnd()
     {
         {
-            ReadOnlyEndianBuffer buffer = new([]);
+            SpanInputBuffer buffer = new([]);
             Assert.True(buffer.IsAtEnd);
         }
 
         {
-            ReadOnlyEndianBuffer buffer = new([1]);
+            SpanInputBuffer buffer = new([1]);
             Assert.False(buffer.IsAtEnd);
             buffer.ReadByte();
             Assert.True(buffer.IsAtEnd);
@@ -24,12 +24,12 @@ public sealed class ReadOnlyEndianBufferTest
     public void IsAtEnd_ShouldReturnFalse_WhenNotAtEnd()
     {
         {
-            ReadOnlyEndianBuffer buffer = new([1]);
+            SpanInputBuffer buffer = new([1]);
             Assert.False(buffer.IsAtEnd);
         }
 
         {
-            ReadOnlyEndianBuffer buffer = new([1, 2]);
+            SpanInputBuffer buffer = new([1, 2]);
             Assert.False(buffer.IsAtEnd);
         }
     }
@@ -37,7 +37,7 @@ public sealed class ReadOnlyEndianBufferTest
     [Fact]
     public void Position_ShouldNotThrow_IfInBounds()
     {
-        ReadOnlyEndianBuffer buffer = new([1, 2, 3, 4]);
+        SpanInputBuffer buffer = new([1, 2, 3, 4]);
         Assert.False(buffer.IsAtEnd);
 
         buffer.Position = 0;
@@ -55,12 +55,12 @@ public sealed class ReadOnlyEndianBufferTest
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
         {
-            ReadOnlyEndianBuffer buffer = new([1, 2, 3, 4]);
+            SpanInputBuffer buffer = new([1, 2, 3, 4]);
             buffer.Position = -1;
         });
         Assert.Throws<ArgumentOutOfRangeException>(() =>
         {
-            ReadOnlyEndianBuffer buffer = new([1, 2, 3, 4]);
+            SpanInputBuffer buffer = new([1, 2, 3, 4]);
             buffer.Position = 5;
         });
     }

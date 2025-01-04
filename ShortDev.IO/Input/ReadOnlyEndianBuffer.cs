@@ -3,7 +3,7 @@ using System.IO;
 
 namespace ShortDev.IO.Input;
 
-public ref struct ReadOnlyEndianBuffer
+public ref struct ReadOnlyEndianBuffer : IReadOnlyEndianBuffer
 {
     int _bufferPosition = 0;
 

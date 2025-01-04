@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
-		<LangVersion>12</LangVersion>
+		<TargetFrameworks>net8.0</TargetFrameworks>
+		<LangVersion>13</LangVersion>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Version>0.1.4</Version>
+		<Version>0.1.4.9</Version>
 		<Authors>ShortDevelopment</Authors>
 		<PackageProjectUrl>https://github.com/SHortDevelopment/ShortDev.IO</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/SHortDevelopment/ShortDev.IO</RepositoryUrl>
@@ -21,6 +21,10 @@
 		<None Include="../icon.png" Link="/nuget/icon.png" Pack="true" PackagePath="/" />
 		<None Include="../README.md" Link="/nuget/README.md" Pack="true" PackagePath="/" />
 		<None Include="../LICENSE.txt" Link="/nuget/LICENSE.txt" Pack="true" PackagePath="/" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="DotNext" Version="5.17.2" />
 	</ItemGroup>
 
 </Project>
