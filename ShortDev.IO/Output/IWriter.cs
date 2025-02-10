@@ -1,12 +1,14 @@
 ﻿using System;
-using System.IO;
+using System.Buffers;
 using System.Text;
 
 namespace ShortDev.IO.Output;
 
-public interface IWriter : IDisposable
+public interface IWriter : IBufferWriter<byte>, IDisposable
 {
-    void Write(ReadOnlySpan<byte> buffer);
+    void Write<T>(T value) where T : IBinaryWritable;
+
+    void Write(scoped ReadOnlySpan<byte> buffer);
 
     void Write(sbyte value);
     void Write(byte value);
@@ -20,12 +22,12 @@ public interface IWriter : IDisposable
     void Write(long value);
     void Write(ulong value);
 
+    void Write(Half value);
     void Write(float value);
     void Write(double value);
 
-    void WriteWithLength(string value, Encoding? encoding = null);
-    void WriteWithLength(ReadOnlySpan<byte> value);
+    void Write(Guid value);
 
-    void CopyTo(Stream destination);
-    void Clear();
+    void WriteWithLength(string value, Encoding? encoding = null);
+    void WriteWithLength(scoped ReadOnlySpan<byte> value);
 }

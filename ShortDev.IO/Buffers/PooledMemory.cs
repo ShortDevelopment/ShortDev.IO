@@ -18,6 +18,7 @@ public readonly struct PooledMemory<T> : IDisposable
     }
 
     public readonly Span<T> Span => _array.AsSpan()[_range];
+    internal readonly Memory<T> Memory => _array.AsMemory()[_range];
 
     public readonly int Length
     {
@@ -45,6 +46,8 @@ public readonly struct PooledMemory<T> : IDisposable
             return new(_pool, _array, new Range(newStart, newStart + length));
         }
     }
+
+    public readonly PooledMemory<T> Slice(int start, int length) => this[start..(start + length)];
 
     public void Dispose() => _pool?.Return(_array ?? throw new UnreachableException("_array was null"));
 

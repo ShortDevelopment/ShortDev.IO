@@ -1,30 +1,29 @@
-﻿using DotNext.Buffers;
+﻿using ShortDev.IO.ValueStream;
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
-using System.IO;
 using System.Text;
 
 namespace ShortDev.IO.Output;
 
-public readonly ref struct EndianWriter(Endianness endianness, HeapOutputBuffer buffer) : IEndianWriter
+public ref struct EndianWriter<TStream>(Endianness endianness) : IEndianWriter where TStream : struct, IValueOutputStream, IBufferWriter<byte>, allows ref struct
 {
-    static readonly Encoding DefaultEncoding = Encoding.UTF8;
+    public Encoding DefaultEncoding { get; init; } = Encoding.UTF8;
 
     public readonly bool UseLittleEndian { get; } = endianness == Endianness.LittleEndian;
-    public readonly HeapOutputBuffer Buffer { get; } = buffer;
+    public required TStream Stream;
 
-    public void Clear()
-        => Buffer.Clear();
+    public void Write<T>(T value) where T : IBinaryWritable
+        => value.Write(ref this);
 
-    public void Write(ReadOnlySpan<byte> buffer)
-        => Buffer.Write(buffer);
+    public void Write(scoped ReadOnlySpan<byte> buffer)
+        => Stream.Write(buffer);
 
     public void Write(sbyte value)
-        => Buffer.Write(unchecked((byte)value));
+        => Stream.Write([unchecked((byte)value)]);
 
     public void Write(byte value)
-        => Buffer.Write(value);
+        => Stream.Write([value]);
 
     public void Write(short value)
     {
@@ -98,6 +97,18 @@ public readonly ref struct EndianWriter(Endianness endianness, HeapOutputBuffer 
         Write(buffer);
     }
 
+    public unsafe void Write(Half value)
+    {
+        Span<byte> buffer = stackalloc byte[sizeof(Half)];
+
+        if (UseLittleEndian)
+            BinaryPrimitives.WriteHalfLittleEndian(buffer, value);
+        else
+            BinaryPrimitives.WriteHalfBigEndian(buffer, value);
+
+        Write(buffer);
+    }
+
     public void Write(float value)
     {
         Span<byte> buffer = stackalloc byte[sizeof(float)];
@@ -122,6 +133,13 @@ public readonly ref struct EndianWriter(Endianness endianness, HeapOutputBuffer 
         Write(buffer);
     }
 
+    public void Write(Guid value)
+    {
+        var buffer = Stream.GetSpan(16);
+        value.TryWriteBytes(buffer);
+        Stream.Advance(16);
+    }
+
     public void WriteWithLength(string value, Encoding? encoding = null)
     {
         encoding ??= DefaultEncoding;
@@ -129,9 +147,9 @@ public readonly ref struct EndianWriter(Endianness endianness, HeapOutputBuffer 
         var length = encoding.GetByteCount(value);
         Write((ushort)length);
 
-        var buffer = Buffer.GetSpan(length);
+        var buffer = Stream.GetSpan(length);
         encoding.GetBytes(value, buffer);
-        Buffer.Advance(length);
+        Stream.Advance(length);
 
         Write((byte)0);
     }
@@ -142,24 +160,43 @@ public readonly ref struct EndianWriter(Endianness endianness, HeapOutputBuffer 
         Write(value);
     }
 
-    public void CopyTo(Stream destination)
+    public void Dispose()
+        => Stream.Dispose();
+
+    public void Advance(int count)
+        => Stream.Advance(count);
+
+    public Memory<byte> GetMemory(int sizeHint = 0)
+        => Stream.GetMemory(sizeHint);
+
+    public Span<byte> GetSpan(int sizeHint = 0)
+        => Stream.GetSpan(sizeHint);
+}
+
+public static class EndianWriter
+{
+    public static EndianWriter<HeapOutputStream> Create(Endianness endianness, ArrayPool<byte> pool)
     {
-        destination.Write(Buffer.WrittenSpan);
-        destination.Flush();
+        return new(endianness)
+        {
+            Stream = new()
+            {
+                Writer = new(pool)
+            }
+        };
     }
 
-    public void Dispose()
-        => Buffer.Dispose();
-
-    public static EndianWriter Create(Endianness endianness, ArrayPool<byte> pool)
-        => new(endianness, new HeapOutputBuffer(new(pool)));
-
-    public static EndianWriter Create(Endianness endianness, ArrayPool<byte> pool, int initialCapacity)
+    public static EndianWriter<HeapOutputStream> Create(Endianness endianness, ArrayPool<byte> pool, int initialCapacity)
     {
-        PoolingArrayBufferWriter<byte> writer = new(pool)
+        return new(endianness)
         {
-            Capacity = initialCapacity
+            Stream = new()
+            {
+                Writer = new(pool)
+                {
+                    Capacity = initialCapacity
+                }
+            }
         };
-        return new(endianness, new HeapOutputBuffer(writer));
     }
 }
