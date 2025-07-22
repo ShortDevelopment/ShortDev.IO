@@ -6,7 +6,7 @@ namespace ShortDev.IO.Output;
 
 public interface IWriter : IBufferWriter<byte>, IDisposable
 {
-    void Write<T>(T value) where T : IBinaryWritable;
+    void Write<T>(in T value) where T : IBinaryWritable, allows ref struct;
 
     void Write(scoped ReadOnlySpan<byte> buffer);
 

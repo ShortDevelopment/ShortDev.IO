@@ -2,6 +2,7 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace ShortDev.IO.Output;
@@ -13,18 +14,23 @@ public ref struct EndianWriter<TStream>(Endianness endianness) : IEndianWriter w
     public readonly bool UseLittleEndian { get; } = endianness == Endianness.LittleEndian;
     public required TStream Stream;
 
-    public void Write<T>(T value) where T : IBinaryWritable
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Write<T>(in T value) where T : IBinaryWritable, allows ref struct
         => value.Write(ref this);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(scoped ReadOnlySpan<byte> buffer)
         => Stream.Write(buffer);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(sbyte value)
         => Stream.Write([unchecked((byte)value)]);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(byte value)
         => Stream.Write([value]);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(short value)
     {
         Span<byte> buffer = stackalloc byte[sizeof(short)];
@@ -37,6 +43,7 @@ public ref struct EndianWriter<TStream>(Endianness endianness) : IEndianWriter w
         Write(buffer);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(ushort value)
     {
         Span<byte> buffer = stackalloc byte[sizeof(ushort)];
@@ -49,6 +56,7 @@ public ref struct EndianWriter<TStream>(Endianness endianness) : IEndianWriter w
         Write(buffer);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(int value)
     {
         Span<byte> buffer = stackalloc byte[sizeof(int)];
@@ -61,6 +69,7 @@ public ref struct EndianWriter<TStream>(Endianness endianness) : IEndianWriter w
         Write(buffer);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(uint value)
     {
         Span<byte> buffer = stackalloc byte[sizeof(uint)];
@@ -73,6 +82,7 @@ public ref struct EndianWriter<TStream>(Endianness endianness) : IEndianWriter w
         Write(buffer);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(long value)
     {
         Span<byte> buffer = stackalloc byte[sizeof(long)];
@@ -85,6 +95,7 @@ public ref struct EndianWriter<TStream>(Endianness endianness) : IEndianWriter w
         Write(buffer);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(ulong value)
     {
         Span<byte> buffer = stackalloc byte[sizeof(ulong)];
@@ -97,6 +108,7 @@ public ref struct EndianWriter<TStream>(Endianness endianness) : IEndianWriter w
         Write(buffer);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public unsafe void Write(Half value)
     {
         Span<byte> buffer = stackalloc byte[sizeof(Half)];
@@ -109,6 +121,7 @@ public ref struct EndianWriter<TStream>(Endianness endianness) : IEndianWriter w
         Write(buffer);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(float value)
     {
         Span<byte> buffer = stackalloc byte[sizeof(float)];
@@ -121,6 +134,7 @@ public ref struct EndianWriter<TStream>(Endianness endianness) : IEndianWriter w
         Write(buffer);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(double value)
     {
         Span<byte> buffer = stackalloc byte[sizeof(double)];
@@ -133,6 +147,7 @@ public ref struct EndianWriter<TStream>(Endianness endianness) : IEndianWriter w
         Write(buffer);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(Guid value)
     {
         var buffer = Stream.GetSpan(16);
@@ -140,6 +155,7 @@ public ref struct EndianWriter<TStream>(Endianness endianness) : IEndianWriter w
         Stream.Advance(16);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteWithLength(string value, Encoding? encoding = null)
     {
         encoding ??= DefaultEncoding;
@@ -154,21 +170,26 @@ public ref struct EndianWriter<TStream>(Endianness endianness) : IEndianWriter w
         Write((byte)0);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteWithLength(ReadOnlySpan<byte> value)
     {
         Write((ushort)value.Length);
         Write(value);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Dispose()
         => Stream.Dispose();
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count)
         => Stream.Advance(count);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Memory<byte> GetMemory(int sizeHint = 0)
         => Stream.GetMemory(sizeHint);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Span<byte> GetSpan(int sizeHint = 0)
         => Stream.GetSpan(sizeHint);
 }
@@ -198,5 +219,20 @@ public static class EndianWriter
                 }
             }
         };
+    }
+
+    public static EndianWriter<FixedStackStream> Create(Endianness endianness, Span<byte> buffer)
+    {
+        return new(endianness)
+        {
+            Stream = new(buffer)
+        };
+    }
+
+    public static ulong CalcBinarySize<T>(in T value) where T : IBinaryWritable
+    {
+        CalcSizeWriter writer = new();
+        value.Write(ref writer);
+        return writer.WrittenBinarySize;
     }
 }

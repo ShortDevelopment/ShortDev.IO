@@ -1,8 +1,9 @@
 ﻿using DotNext.Buffers;
+using ShortDev.IO.Bond;
 using ShortDev.IO.Output;
 using ShortDev.IO.ValueStream;
 using System.Buffers;
-using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 
 namespace ShortDev.IO.Tests.Output;
 
@@ -56,5 +57,20 @@ public class EndianWriterTest
         writer.Write((byte)5);
 
         stream = writer.Stream;
+    }
+
+    [Fact]
+    public unsafe void PointerException()
+    {
+        var writer = EndianWriter.Create(Endianness.BigEndian, ArrayPool<byte>.Shared);
+        try
+        {
+            var pWriter = (EndianWriter<HeapOutputStream>*)Unsafe.AsPointer(ref writer);
+            pWriter->WriteVarUInt32(1234);
+        }
+        finally
+        {
+            writer.Dispose();
+        }
     }
 }
