@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using ShortDev.IO.Input;
+using ShortDev.IO.ValueStream;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -14,7 +15,10 @@ namespace ShortDev.IO.Bond;
 /// <param name="version2">Protocol version</param>
 public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort version = 1) where TReader : struct, IEndianReader, allows ref struct
 {
-    readonly TReader* input = (TReader*)Unsafe.AsPointer(ref reader);
+    readonly EndianReader<DelegatingInputStream<TReader>> input = new(Endianness.LittleEndian)
+    {
+        Stream = new(ref reader)
+    };
 
     #region Complex types
 
@@ -27,7 +31,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     {
         if (2 == version)
         {
-            input->ReadVarUInt32();
+            input.ReadVarUInt32();
         }
     }
 
@@ -65,7 +69,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ReadFieldBegin(out BondDataType type, out ushort id)
     {
-        uint raw = input->ReadUInt8();
+        uint raw = input.ReadUInt8();
 
         type = (BondDataType)(raw & 0x1f);
         raw >>= 5;
@@ -76,11 +80,11 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
         }
         else if (raw == 6)
         {
-            id = input->ReadUInt8();
+            id = input.ReadUInt8();
         }
         else
         {
-            id = input->ReadUInt16();
+            id = input.ReadUInt16();
         }
     }
 
@@ -101,13 +105,13 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ReadContainerBegin(out int count, out BondDataType elementType)
     {
-        var raw = input->ReadUInt8();
+        var raw = input.ReadUInt8();
         elementType = (BondDataType)(raw & 0x1f);
 
         if (2 == version && (raw & 0x07 << 5) != 0)
             count = (raw >> 5) - 1;
         else
-            count = checked((int)input->ReadVarUInt32());
+            count = checked((int)input.ReadVarUInt32());
     }
 
     /// <summary>
@@ -120,9 +124,9 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ReadContainerBegin(out int count, out BondDataType keyType, out BondDataType valueType)
     {
-        keyType = (BondDataType)input->ReadUInt8();
-        valueType = (BondDataType)input->ReadUInt8();
-        count = checked((int)input->ReadVarUInt32());
+        keyType = (BondDataType)input.ReadUInt8();
+        valueType = (BondDataType)input.ReadUInt8();
+        count = checked((int)input.ReadVarUInt32());
     }
 
     /// <summary>
@@ -144,7 +148,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte ReadUInt8()
     {
-        return input->ReadUInt8();
+        return input.ReadUInt8();
     }
 
     /// <summary>
@@ -154,7 +158,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ushort ReadUInt16()
     {
-        return input->ReadVarUInt16();
+        return input.ReadVarUInt16();
     }
 
     /// <summary>
@@ -164,7 +168,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public uint ReadUInt32()
     {
-        return input->ReadVarUInt32();
+        return input.ReadVarUInt32();
     }
 
     /// <summary>
@@ -174,7 +178,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ulong ReadUInt64()
     {
-        return input->ReadVarUInt64();
+        return input.ReadVarUInt64();
     }
 
     /// <summary>
@@ -184,7 +188,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public sbyte ReadInt8()
     {
-        return (sbyte)input->ReadUInt8();
+        return (sbyte)input.ReadUInt8();
     }
 
     /// <summary>
@@ -194,7 +198,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public short ReadInt16()
     {
-        return IntegerHelper.DecodeZigzag16(input->ReadVarUInt16());
+        return IntegerHelper.DecodeZigzag16(input.ReadVarUInt16());
     }
 
     /// <summary>
@@ -204,7 +208,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int ReadInt32()
     {
-        return IntegerHelper.DecodeZigzag32(input->ReadVarUInt32());
+        return IntegerHelper.DecodeZigzag32(input.ReadVarUInt32());
     }
 
     /// <summary>
@@ -214,7 +218,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public long ReadInt64()
     {
-        return IntegerHelper.DecodeZigzag64(input->ReadVarUInt64());
+        return IntegerHelper.DecodeZigzag64(input.ReadVarUInt64());
     }
 
     /// <summary>
@@ -224,7 +228,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ReadBool()
     {
-        return input->ReadUInt8() != 0;
+        return input.ReadUInt8() != 0;
     }
 
     /// <summary>
@@ -234,7 +238,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float ReadFloat()
     {
-        return input->ReadSingle();
+        return input.ReadSingle();
     }
 
     /// <summary>
@@ -244,7 +248,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double ReadDouble()
     {
-        return input->ReadDouble();
+        return input.ReadDouble();
     }
 
     /// <summary>
@@ -254,8 +258,8 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string ReadString()
     {
-        var length = checked((int)input->ReadVarUInt32());
-        return length == 0 ? string.Empty : input->ReadString(length, Encoding.UTF8);
+        var length = checked((int)input.ReadVarUInt32());
+        return length == 0 ? string.Empty : input.ReadString(length, Encoding.UTF8);
     }
 
     /// <summary>
@@ -265,8 +269,8 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string ReadWString()
     {
-        var length = checked((int)(input->ReadVarUInt32() * 2));
-        return length == 0 ? string.Empty : input->ReadString(length, Encoding.Unicode);
+        var length = checked((int)(input.ReadVarUInt32() * 2));
+        return length == 0 ? string.Empty : input.ReadString(length, Encoding.Unicode);
     }
     #endregion
 }
