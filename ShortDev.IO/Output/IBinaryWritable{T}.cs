@@ -1,6 +1,7 @@
 ﻿namespace ShortDev.IO.Output;
 
-public interface IBinaryWritable<TSelf> where TSelf : IBinaryWritable<TSelf>, IBinaryWritable
+public interface IBinaryWritable<TSelf> : IBinaryWritable
+    where TSelf : IBinaryWritable<TSelf>
 {
     /// <summary>
     /// Gets the minimum required size in bytes to write this message to a buffer
@@ -10,7 +11,7 @@ public interface IBinaryWritable<TSelf> where TSelf : IBinaryWritable<TSelf>, IB
         get
         {
             CalcSizeWriter writer = new();
-            ((IBinaryWritable)this).Write(ref writer);
+            Write(ref writer);
             return writer.WrittenBinarySize;
         }
     }
