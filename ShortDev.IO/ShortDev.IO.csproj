@@ -24,7 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="DotNext" Version="5.17.2" />
+		<PackageReference Include="DotNext" Version="6.3.0" />
 	</ItemGroup>
 
 </Project>
