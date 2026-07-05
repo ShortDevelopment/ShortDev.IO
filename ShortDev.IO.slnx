@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ShortDev.IO.Tests/ShortDev.IO.Tests.csproj" />
+  <Project Path="ShortDev.IO/ShortDev.IO.csproj" />
+</Solution>
