@@ -83,7 +83,7 @@ internal ref struct CalcSizeWriter() : IEndianWriter
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteWithLength(ReadOnlySpan<byte> value)
+    public void WriteWithLength(scoped ReadOnlySpan<byte> value)
     {
         _size += sizeof(ushort); // for length
         _size += (ulong)value.Length;

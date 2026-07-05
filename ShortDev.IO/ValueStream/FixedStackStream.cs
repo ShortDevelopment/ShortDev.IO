@@ -35,7 +35,7 @@ public ref struct FixedStackStream(Span<byte> buffer) : IValueInputStream, IValu
         return ValueTask.CompletedTask;
     }
 
-    public void Write(ReadOnlySpan<byte> buffer)
+    public void Write(scoped ReadOnlySpan<byte> buffer)
         => _buffer.Write(buffer, ref _position);
 
     ValueTask IValueOutputStream.WriteAsync(ReadOnlyMemory<byte> buffer)

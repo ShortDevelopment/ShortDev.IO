@@ -171,7 +171,7 @@ public ref struct EndianWriter<TStream>(Endianness endianness) : IEndianWriter w
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteWithLength(ReadOnlySpan<byte> value)
+    public void WriteWithLength(scoped ReadOnlySpan<byte> value)
     {
         Write((ushort)value.Length);
         Write(value);

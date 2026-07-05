@@ -16,7 +16,7 @@ public ref struct FixedReadOnlyHeapStream(ReadOnlyMemory<byte> buffer, Action? d
         set => Extensions.SetPosition(ref _position, Length, value);
     }
 
-    public void Read(Span<byte> buffer)
+    public void Read(scoped Span<byte> buffer)
         => _buffer.Span.Read(buffer, ref _position);
 
     public ReadOnlySpan<byte> ReadSlice(int length)
