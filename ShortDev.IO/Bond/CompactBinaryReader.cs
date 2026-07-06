@@ -3,6 +3,9 @@
 
 using ShortDev.IO.Input;
 using ShortDev.IO.ValueStream;
+using System;
+using System.Buffers;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -13,9 +16,10 @@ namespace ShortDev.IO.Bond;
 /// </summary>
 /// <typeparam name="I">Implementation of IInputStream interface</typeparam>
 /// <param name="version2">Protocol version</param>
-public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort version = 1) where TReader : struct, IEndianReader, allows ref struct
+public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort version = 1) : ITaggedProtocolReader
+    where TReader : struct, IEndianReader, allows ref struct
 {
-    readonly EndianReader<DelegatingInputStream<TReader>> input = new(Endianness.LittleEndian)
+    EndianReader<DelegatingInputStream<TReader>> input = new(Endianness.LittleEndian)
     {
         Stream = new(ref reader)
     };
@@ -108,7 +112,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
         var raw = input.ReadUInt8();
         elementType = (BondDataType)(raw & 0x1f);
 
-        if (2 == version && (raw & 0x07 << 5) != 0)
+        if (2 == version && (raw & (0x07 << 5)) != 0)
             count = (raw >> 5) - 1;
         else
             count = checked((int)input.ReadVarUInt32());
@@ -259,7 +263,7 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     public string ReadString()
     {
         var length = checked((int)input.ReadVarUInt32());
-        return length == 0 ? string.Empty : input.ReadString(length, Encoding.UTF8);
+        return length == 0 ? string.Empty : ReadString(Encoding.UTF8, length);
     }
 
     /// <summary>
@@ -270,7 +274,189 @@ public unsafe ref struct CompactBinaryReader<TReader>(ref TReader reader, ushort
     public string ReadWString()
     {
         var length = checked((int)(input.ReadVarUInt32() * 2));
-        return length == 0 ? string.Empty : input.ReadString(length, Encoding.Unicode);
+        return length == 0 ? string.Empty : ReadString(Encoding.Unicode, length);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private string ReadString(Encoding encoding, int length)
+    {
+        var rentedBuffer = ArrayPool<byte>.Shared.Rent(length);
+        try
+        {
+            var buffer = rentedBuffer.AsSpan(start: 0, length);
+            input.ReadBytes(buffer);
+            return encoding.GetString(buffer);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(rentedBuffer);
+        }
+    }
+
+    /// <summary>
+    /// Read an array of bytes verbatim
+    /// </summary>
+    /// <param name="count">Number of bytes to read</param>
+    /// <exception cref="EndOfStreamException"/>
+    [Obsolete("Use ReadBytes(scoped Span<byte> buffer) instead")]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ArraySegment<byte> ReadBytes(int count)
+    {
+        byte[] buffer = new byte[count];
+        input.ReadBytes(buffer);
+        return buffer;
+    }
+
+    /// <summary>
+    /// Read an array of bytes verbatim
+    /// </summary>
+    /// <param name="count">Number of bytes to read</param>
+    /// <exception cref="EndOfStreamException"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadBytes(scoped Span<byte> buffer)
+    {
+        input.ReadBytes(buffer);
+    }
+    #endregion
+
+    #region Skip
+    /// <summary>
+    /// Skip a value of specified type
+    /// </summary>
+    /// <param name="type">Type of the value to skip</param>
+    /// <exception cref="EndOfStreamException"/>
+    public void Skip(BondDataType type)
+    {
+        switch (type)
+        {
+            case (BondDataType.BT_BOOL):
+            case (BondDataType.BT_UINT8):
+            case (BondDataType.BT_INT8):
+                input.SkipBytes(sizeof(byte));
+                break;
+            case (BondDataType.BT_UINT16):
+            case (BondDataType.BT_INT16):
+                input.ReadVarUInt16();
+                break;
+            case (BondDataType.BT_UINT32):
+            case (BondDataType.BT_INT32):
+                input.ReadVarUInt32();
+                break;
+            case (BondDataType.BT_FLOAT):
+                input.SkipBytes(sizeof(float));
+                break;
+            case (BondDataType.BT_DOUBLE):
+                input.SkipBytes(sizeof(double));
+                break;
+            case (BondDataType.BT_UINT64):
+            case (BondDataType.BT_INT64):
+                input.ReadVarUInt64();
+                break;
+            case (BondDataType.BT_STRING):
+                input.SkipBytes(checked((int)input.ReadVarUInt32()));
+                break;
+            case (BondDataType.BT_WSTRING):
+                input.SkipBytes(checked((int)(input.ReadVarUInt32() * 2)));
+                break;
+            case BondDataType.BT_LIST:
+            case BondDataType.BT_SET:
+                SkipContainer();
+                break;
+            case BondDataType.BT_MAP:
+                SkipMap();
+                break;
+            case BondDataType.BT_STRUCT:
+                SkipStruct();
+                break;
+            default:
+                throw new InvalidDataException($"Invalid BondDataType {type}");
+        }
+    }
+
+
+    void SkipContainer()
+    {
+        ReadContainerBegin(out int count, out BondDataType elementType);
+
+        if (elementType == BondDataType.BT_UINT8 || elementType == BondDataType.BT_INT8)
+        {
+            input.SkipBytes(count);
+        }
+        else if (elementType == BondDataType.BT_FLOAT)
+        {
+            input.SkipBytes(checked(count * sizeof(float)));
+        }
+        else if (elementType == BondDataType.BT_DOUBLE)
+        {
+            input.SkipBytes(checked(count * sizeof(double)));
+        }
+        else
+        {
+            int depth = MaxDepthChecker.ValidateDepthForIncrement();
+            try
+            {
+                MaxDepthChecker.SetDepth(depth + 1);
+
+                while (0 <= --count)
+                {
+                    Skip(elementType);
+                }
+            }
+            finally
+            {
+                MaxDepthChecker.SetDepth(depth);
+            }
+        }
+    }
+
+    void SkipMap()
+    {
+        int depth = MaxDepthChecker.ValidateDepthForIncrement();
+        try
+        {
+            MaxDepthChecker.SetDepth(depth + 1);
+
+            ReadContainerBegin(out int count, out BondDataType keyType, out BondDataType valueType);
+            while (0 <= --count)
+            {
+                Skip(keyType);
+                Skip(valueType);
+            }
+        }
+        finally
+        {
+            MaxDepthChecker.SetDepth(depth);
+        }
+    }
+
+    void SkipStruct()
+    {
+        if (2 == version)
+        {
+            input.SkipBytes(checked((int)input.ReadVarUInt32()));
+        }
+        else
+        {
+            int depth = MaxDepthChecker.ValidateDepthForIncrement();
+            try
+            {
+                MaxDepthChecker.SetDepth(depth + 1);
+
+                while (true)
+                {
+                    ReadFieldBegin(out BondDataType type, out _);
+
+                    if (type == BondDataType.BT_STOP_BASE) continue;
+                    if (type == BondDataType.BT_STOP) break;
+
+                    Skip(type);
+                }
+            }
+            finally
+            {
+                MaxDepthChecker.SetDepth(depth);
+            }
+        }
     }
     #endregion
 }

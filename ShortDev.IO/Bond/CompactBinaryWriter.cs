@@ -15,10 +15,11 @@ namespace ShortDev.IO.Bond;
 /// <typeparam name="O">Implementation of IOutputStream interface</typeparam>
 /// <param name="buffer">Serialized payload output</param>
 /// <param name="version">Protocol version</param>
-public readonly ref struct CompactBinaryWriter<TWriter>(ref TWriter writer, ushort version = 1) where TWriter : struct, IEndianWriter, allows ref struct
+public ref struct CompactBinaryWriter<TWriter>(ref TWriter writer, ushort version = 1) : IProtocolWriter
+    where TWriter : struct, IEndianWriter, allows ref struct
 {
     const ushort Magic = (ushort)ProtocolType.COMPACT_PROTOCOL;
-    readonly EndianWriter<DelegatingOutputStream<TWriter>> output = new(Endianness.LittleEndian)
+    EndianWriter<DelegatingOutputStream<TWriter>> output = new(Endianness.LittleEndian)
     {
         Stream = new(ref writer)
     };
@@ -41,7 +42,7 @@ public readonly ref struct CompactBinaryWriter<TWriter>(ref TWriter writer, usho
     /// </summary>
     /// <param name="metadata">Schema metadata</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteStructBegin()
+    public void WriteStructBegin(Metadata? metadata = null)
     {
         if (lengths is null)
             return;
@@ -61,7 +62,7 @@ public readonly ref struct CompactBinaryWriter<TWriter>(ref TWriter writer, usho
     /// </summary>
     /// <param name="metadata">Base schema metadata</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteBaseBegin()
+    public void WriteBaseBegin(Metadata? metadata = null)
     { }
 
     /// <summary>
@@ -90,7 +91,7 @@ public readonly ref struct CompactBinaryWriter<TWriter>(ref TWriter writer, usho
     /// <param name="id">Identifier of the field</param>
     /// <param name="metadata">Metadata of the field</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteFieldBegin(BondDataType type, ushort id)
+    public void WriteFieldBegin(BondDataType type, ushort id, Metadata? metadata = null)
     {
         var fieldType = (uint)type;
         if (id <= 5)
@@ -115,7 +116,7 @@ public readonly ref struct CompactBinaryWriter<TWriter>(ref TWriter writer, usho
     /// <param name="dataType">Type of the field</param>
     /// <param name="id">Identifier of the field</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteFieldOmitted(BondDataType dataType, ushort id)
+    public void WriteFieldOmitted(BondDataType dataType, ushort id, Metadata? metadata = null)
     { }
 
 
@@ -165,6 +166,15 @@ public readonly ref struct CompactBinaryWriter<TWriter>(ref TWriter writer, usho
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteContainerEnd()
     { }
+
+    /// <summary>
+    /// Write array of bytes verbatim
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteBytes(ArraySegment<byte> data)
+    {
+        output.Write(data);
+    }
 
     /// <summary>
     /// Write array of bytes verbatim
@@ -291,10 +301,7 @@ public readonly ref struct CompactBinaryWriter<TWriter>(ref TWriter writer, usho
 
         var byteSize = Encoding.UTF8.GetByteCount(value);
         WriteUInt32((uint)byteSize);
-        // output.WriteString(Encoding.UTF8, value, size);
-        var buffer = output.GetSpan(byteSize);
-        Encoding.UTF8.GetBytes(value, buffer);
-        output.Advance(byteSize);
+        WriteString(Encoding.UTF8, value, byteSize);
     }
 
     /// <summary>
@@ -311,9 +318,12 @@ public readonly ref struct CompactBinaryWriter<TWriter>(ref TWriter writer, usho
 
         int byteSize = checked(value.Length * 2);
         WriteUInt32((uint)value.Length);
-        // output.WriteString(Encoding.Unicode, value, byteSize);
-        var buffer = output.GetSpan(byteSize);
-        Encoding.Unicode.GetBytes(value, buffer);
+        WriteString(Encoding.Unicode, value, byteSize);
+    }
+
+    private void WriteString(Encoding encoding, string value, int byteSize)
+    {
+        encoding.GetBytes(value, output.GetSpan(byteSize));
         output.Advance(byteSize);
     }
     #endregion

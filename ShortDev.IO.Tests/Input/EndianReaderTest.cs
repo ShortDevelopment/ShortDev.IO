@@ -14,7 +14,7 @@ public class EndianReaderTest
     {
         byte[] data = [1, 2, 3, 4, 5];
 
-        TestRead<FixedStackStream>(endianness, new(data));
+        TestRead<SpanStream>(endianness, new(data));
     }
 
     [Theory]
@@ -24,7 +24,7 @@ public class EndianReaderTest
     {
         byte[] data = [1, 2, 3, 4, 5];
 
-        TestRead<FixedReadOnlyStackStream>(endianness, new(data));
+        TestRead<ReadOnlySpanStream>(endianness, new(data));
     }
 
     [Theory]
@@ -34,7 +34,43 @@ public class EndianReaderTest
     {
         byte[] data = [1, 2, 3, 4, 5];
 
-        TestRead<FixedReadOnlyHeapStream>(endianness, new(data));
+        TestRead<ReadOnlyMemoryStream>(endianness, new(data));
+    }
+
+    [Theory]
+    [InlineData(Endianness.LittleEndian)]
+    [InlineData(Endianness.BigEndian)]
+    public void DelegatingInputStream(Endianness endianness)
+    {
+        byte[] data = [1, 2, 3, 4, 5];
+
+        var innerReader = EndianReader.FromSpan(endianness, data);
+
+        DelegatingInputStream<EndianReader<ReadOnlySpanStream>> stream = new(ref innerReader);
+
+        // Test keep state
+        Assert.Equal(1, stream.ReadByte());
+        Assert.Equal(2, stream.ReadByte());
+        Assert.Equal(3, stream.ReadByte());
+        Assert.Equal(4, stream.ReadByte());
+        Assert.Equal(5, stream.ReadByte());
+
+        try
+        {
+            stream.ReadByte();
+            Assert.Fail("Expected ReadByte to throw");
+        }
+        catch (Exception ex)
+        {
+            Assert.NotNull(ex);
+        }
+
+        // Reset
+        innerReader.Stream.Position = 0;
+
+        // Test skip
+        stream.Skip(4);
+        Assert.Equal(5, stream.ReadByte());
     }
 
     static void TestRead<TStream>(Endianness endianness, TStream stream) where TStream : struct, IValueInputStream, IValueStreamPosition, allows ref struct

@@ -7,7 +7,8 @@ namespace ShortDev.IO.Bond;
 public static class Extensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteVarUInt16<TWriter>(this TWriter writer, ushort value) where TWriter : struct, IEndianWriter, allows ref struct
+    public static void WriteVarUInt16<TWriter>(this ref TWriter writer, ushort value)
+        where TWriter : struct, IEndianWriter, allows ref struct
     {
         var buffer = writer.GetSpan(3);
         var length = IntegerHelper.EncodeVarUInt16(buffer, value, 0);
@@ -15,7 +16,8 @@ public static class Extensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteVarUInt32<TWriter>(this TWriter writer, uint value) where TWriter : struct, IEndianWriter, allows ref struct
+    public static void WriteVarUInt32<TWriter>(this ref TWriter writer, uint value)
+        where TWriter : struct, IEndianWriter, allows ref struct
     {
         var buffer = writer.GetSpan(5);
         var length = IntegerHelper.EncodeVarUInt32(buffer, value, 0);
@@ -23,7 +25,8 @@ public static class Extensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteVarUInt64<TWriter>(this TWriter writer, ulong value) where TWriter : struct, IEndianWriter, allows ref struct
+    public static void WriteVarUInt64<TWriter>(this ref TWriter writer, ulong value)
+        where TWriter : struct, IEndianWriter, allows ref struct
     {
         var buffer = writer.GetSpan(10);
         var length = IntegerHelper.EncodeVarUInt64(buffer, value, 0);
@@ -31,7 +34,8 @@ public static class Extensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ushort ReadVarUInt16<TReader>(this TReader reader) where TReader : struct, IEndianReader, allows ref struct
+    public static ushort ReadVarUInt16<TReader>(this ref TReader reader)
+        where TReader : struct, IEndianReader, allows ref struct
     {
         // byte 0
         uint result = reader.ReadUInt8();
@@ -51,7 +55,8 @@ public static class Extensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint ReadVarUInt32<TReader>(this TReader reader) where TReader : struct, IEndianReader, allows ref struct
+    public static uint ReadVarUInt32<TReader>(this ref TReader reader)
+        where TReader : struct, IEndianReader, allows ref struct
     {
         // byte 0
         uint result = reader.ReadUInt8();
@@ -83,7 +88,8 @@ public static class Extensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong ReadVarUInt64<TReader>(this TReader reader) where TReader : struct, IEndianReader, allows ref struct
+    public static ulong ReadVarUInt64<TReader>(this ref TReader reader)
+        where TReader : struct, IEndianReader, allows ref struct
     {
         // byte 0
         ulong result = reader.ReadUInt8();

@@ -8,12 +8,12 @@ public sealed class ExtensionsTest
     public void IsAtEnd_ShouldReturnTrue_WhenAtEnd()
     {
         {
-            FixedReadOnlyStackStream buffer = new([]);
+            ReadOnlySpanStream buffer = new([]);
             Assert.True(buffer.IsAtEnd());
         }
 
         {
-            FixedReadOnlyStackStream buffer = new([1]);
+            ReadOnlySpanStream buffer = new([1]);
             Assert.False(buffer.IsAtEnd());
             buffer.ReadByte();
             Assert.True(buffer.IsAtEnd());
@@ -24,12 +24,12 @@ public sealed class ExtensionsTest
     public void IsAtEnd_ShouldReturnFalse_WhenNotAtEnd()
     {
         {
-            FixedReadOnlyStackStream buffer = new([1]);
+            ReadOnlySpanStream buffer = new([1]);
             Assert.False(buffer.IsAtEnd());
         }
 
         {
-            FixedReadOnlyStackStream buffer = new([1, 2]);
+            ReadOnlySpanStream buffer = new([1, 2]);
             Assert.False(buffer.IsAtEnd());
         }
     }
@@ -37,7 +37,7 @@ public sealed class ExtensionsTest
     [Fact]
     public void Position_ShouldNotThrow_IfInBounds()
     {
-        FixedReadOnlyStackStream buffer = new([1, 2, 3, 4]);
+        ReadOnlySpanStream buffer = new([1, 2, 3, 4]);
         Assert.False(buffer.IsAtEnd());
 
         buffer.Position = 0;
@@ -55,12 +55,12 @@ public sealed class ExtensionsTest
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
         {
-            FixedReadOnlyStackStream buffer = new([1, 2, 3, 4]);
+            ReadOnlySpanStream buffer = new([1, 2, 3, 4]);
             buffer.Position = -1;
         });
         Assert.Throws<ArgumentOutOfRangeException>(() =>
         {
-            FixedReadOnlyStackStream buffer = new([1, 2, 3, 4]);
+            ReadOnlySpanStream buffer = new([1, 2, 3, 4]);
             buffer.Position = 5;
         });
     }

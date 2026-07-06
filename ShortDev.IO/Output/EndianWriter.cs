@@ -221,7 +221,7 @@ public static class EndianWriter
         };
     }
 
-    public static EndianWriter<FixedStackStream> Create(Endianness endianness, Span<byte> buffer)
+    public static EndianWriter<SpanStream> Create(Endianness endianness, Span<byte> buffer)
     {
         return new(endianness)
         {

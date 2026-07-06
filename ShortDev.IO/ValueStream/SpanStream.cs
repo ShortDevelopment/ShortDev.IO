@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace ShortDev.IO.ValueStream;
 
-public ref struct FixedStackStream(Span<byte> buffer) : IValueInputStream, IValueOutputStream, IBufferWriter<byte>, IValueStreamPosition
+public ref struct SpanStream(Span<byte> buffer) : IValueInputStream, IValueOutputStream, IBufferWriter<byte>, IValueStreamPosition
 {
     readonly Span<byte> _buffer = buffer;
 
@@ -16,6 +16,9 @@ public ref struct FixedStackStream(Span<byte> buffer) : IValueInputStream, IValu
         readonly get => _position;
         set => Extensions.SetPosition(ref _position, Length, value);
     }
+
+    public void Skip(int count)
+        => Position += count;
 
     public void Read(scoped Span<byte> buffer)
         => _buffer.Read(buffer, ref _position);
@@ -53,7 +56,7 @@ public ref struct FixedStackStream(Span<byte> buffer) : IValueInputStream, IValu
     }
 
     public readonly Memory<byte> GetMemory(int sizeHint = 0)
-        => throw new NotImplementedException($"{nameof(FixedStackStream)} cannot use heap memory");
+        => throw new NotImplementedException($"{nameof(SpanStream)} cannot use heap memory");
 
     public void Advance(int count)
         => Position += count;

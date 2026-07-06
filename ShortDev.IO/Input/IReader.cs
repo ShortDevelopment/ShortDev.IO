@@ -7,6 +7,7 @@ public interface IReader : IDisposable
 {
     T Read<T>() where T : IBinaryParsable<T>;
 
+    void SkipBytes(int count);
     void ReadBytes(scoped Span<byte> buffer);
 
     sbyte ReadInt8();

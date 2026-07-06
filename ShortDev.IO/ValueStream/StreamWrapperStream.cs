@@ -16,6 +16,9 @@ public readonly struct StreamWrapperStream(Stream stream) : IValueInputStream, I
         set => _stream.Position = value;
     }
 
+    public void Skip(int count)
+        => Position += count;
+
     public void Read(Span<byte> buffer)
         => _stream.ReadExactly(buffer);
 

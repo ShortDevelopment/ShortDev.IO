@@ -15,7 +15,7 @@ public class EndianWriterTest
     public void FixedStackStream(Endianness endianness)
     {
         byte[] data = new byte[5];
-        FixedStackStream stream = new(data);
+        SpanStream stream = new(data);
         Assert.Equal(0, stream.Position);
 
         TestWriter(endianness, ref stream);

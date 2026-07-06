@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace ShortDev.IO.ValueStream;
 
-public ref struct FixedReadOnlyHeapStream(ReadOnlyMemory<byte> buffer, Action? disposeAction = null) : IValueInputStream, IValueStreamPosition
+public ref struct ReadOnlyMemoryStream(ReadOnlyMemory<byte> buffer, Action? disposeAction = null) : IValueInputStream, IValueStreamPosition
 {
     readonly ReadOnlyMemory<byte> _buffer = buffer;
 
@@ -15,6 +15,9 @@ public ref struct FixedReadOnlyHeapStream(ReadOnlyMemory<byte> buffer, Action? d
         readonly get => _position;
         set => Extensions.SetPosition(ref _position, Length, value);
     }
+
+    public void Skip(int count)
+        => Position += count;
 
     public void Read(scoped Span<byte> buffer)
         => _buffer.Span.Read(buffer, ref _position);

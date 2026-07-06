@@ -6,15 +6,19 @@ using System.Threading.Tasks;
 
 namespace ShortDev.IO.ValueStream;
 
-internal unsafe readonly ref struct DelegatingOutputStream<TWriter>(ref TWriter writer) : IValueOutputStream, IBufferWriter<byte> where TWriter : struct, IEndianWriter, allows ref struct
+internal unsafe readonly ref struct DelegatingOutputStream<TWriter>(ref TWriter writer) : IValueOutputStream, IBufferWriter<byte>
+    where TWriter : struct, IEndianWriter, allows ref struct
 {
     readonly TWriter* _output = (TWriter*)Unsafe.AsPointer(ref writer);
 
     public void Write(scoped ReadOnlySpan<byte> buffer)
         => _output->Write(buffer);
 
-    public ValueTask WriteAsync(ReadOnlyMemory<byte> buffer)
-        => throw new NotImplementedException();
+    ValueTask IValueOutputStream.WriteAsync(ReadOnlyMemory<byte> buffer)
+    {
+        _output->Write(buffer.Span);
+        return ValueTask.CompletedTask;
+    }
 
     public Span<byte> GetSpan(int sizeHint = 0)
         => _output->GetSpan(sizeHint);

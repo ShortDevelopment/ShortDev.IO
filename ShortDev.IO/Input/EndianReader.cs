@@ -9,7 +9,8 @@ using System.Text;
 
 namespace ShortDev.IO.Input;
 
-public ref struct EndianReader<TStream>(Endianness endianness) : IEndianReader where TStream : struct, IValueInputStream, allows ref struct
+public ref struct EndianReader<TStream>(Endianness endianness) : IEndianReader
+    where TStream : struct, IValueInputStream, allows ref struct
 {
     public Encoding DefaultEncoding { get; init; } = Encoding.UTF8;
 
@@ -19,6 +20,9 @@ public ref struct EndianReader<TStream>(Endianness endianness) : IEndianReader w
 
     public T Read<T>() where T : IBinaryParsable<T>
         => T.Parse(ref this);
+
+    public void SkipBytes(int count)
+        => Stream.Skip(count);
 
     public void ReadBytes(scoped Span<byte> buffer)
         => Stream.Read(buffer);
@@ -41,7 +45,7 @@ public ref struct EndianReader<TStream>(Endianness endianness) : IEndianReader w
     }
 
     [SkipLocalsInit]
-    public short ReadInt16()
+    public unsafe short ReadInt16()
     {
         Span<byte> buffer = stackalloc byte[sizeof(short)];
         ReadBytes(buffer);
@@ -53,7 +57,7 @@ public ref struct EndianReader<TStream>(Endianness endianness) : IEndianReader w
     }
 
     [SkipLocalsInit]
-    public ushort ReadUInt16()
+    public unsafe ushort ReadUInt16()
     {
         Span<byte> buffer = stackalloc byte[sizeof(ushort)];
         ReadBytes(buffer);
@@ -65,7 +69,7 @@ public ref struct EndianReader<TStream>(Endianness endianness) : IEndianReader w
     }
 
     [SkipLocalsInit]
-    public int ReadInt32()
+    public unsafe int ReadInt32()
     {
         Span<byte> buffer = stackalloc byte[sizeof(int)];
         ReadBytes(buffer);
@@ -77,7 +81,7 @@ public ref struct EndianReader<TStream>(Endianness endianness) : IEndianReader w
     }
 
     [SkipLocalsInit]
-    public uint ReadUInt32()
+    public unsafe uint ReadUInt32()
     {
         Span<byte> buffer = stackalloc byte[sizeof(uint)];
         ReadBytes(buffer);
@@ -89,7 +93,7 @@ public ref struct EndianReader<TStream>(Endianness endianness) : IEndianReader w
     }
 
     [SkipLocalsInit]
-    public long ReadInt64()
+    public unsafe long ReadInt64()
     {
         Span<byte> buffer = stackalloc byte[sizeof(long)];
         ReadBytes(buffer);
@@ -101,7 +105,7 @@ public ref struct EndianReader<TStream>(Endianness endianness) : IEndianReader w
     }
 
     [SkipLocalsInit]
-    public ulong ReadUInt64()
+    public unsafe ulong ReadUInt64()
     {
         Span<byte> buffer = stackalloc byte[sizeof(ulong)];
         ReadBytes(buffer);
@@ -125,7 +129,7 @@ public ref struct EndianReader<TStream>(Endianness endianness) : IEndianReader w
     }
 
     [SkipLocalsInit]
-    public float ReadSingle()
+    public unsafe float ReadSingle()
     {
         Span<byte> buffer = stackalloc byte[sizeof(float)];
         ReadBytes(buffer);
@@ -137,7 +141,7 @@ public ref struct EndianReader<TStream>(Endianness endianness) : IEndianReader w
     }
 
     [SkipLocalsInit]
-    public double ReadDouble()
+    public unsafe double ReadDouble()
     {
         Span<byte> buffer = stackalloc byte[sizeof(double)];
         ReadBytes(buffer);
@@ -149,7 +153,7 @@ public ref struct EndianReader<TStream>(Endianness endianness) : IEndianReader w
     }
 
     [SkipLocalsInit]
-    public Guid ReadGuid()
+    public unsafe Guid ReadGuid()
     {
         Span<byte> buffer = stackalloc byte[16];
         ReadBytes(buffer);
@@ -190,12 +194,12 @@ public static class EndianReader
     public static EndianReader<StreamWrapperStream> FromStream(Endianness endianness, Stream stream)
         => new(endianness) { Stream = new(stream) };
 
-    public static EndianReader<FixedReadOnlyStackStream> FromSpan(Endianness endianness, ReadOnlySpan<byte> buffer)
+    public static EndianReader<ReadOnlySpanStream> FromSpan(Endianness endianness, ReadOnlySpan<byte> buffer)
         => new(endianness) { Stream = new(buffer) };
 
-    public static EndianReader<FixedReadOnlyHeapStream> FromMemory(Endianness endianness, ReadOnlyMemory<byte> buffer)
+    public static EndianReader<ReadOnlyMemoryStream> FromMemory(Endianness endianness, ReadOnlyMemory<byte> buffer)
         => new(endianness) { Stream = new(buffer) };
 
-    public static EndianReader<FixedReadOnlyHeapStream> FromMemory(Endianness endianness, PooledMemory<byte> buffer)
+    public static EndianReader<ReadOnlyMemoryStream> FromMemory(Endianness endianness, PooledMemory<byte> buffer)
         => new(endianness) { Stream = new(buffer.Memory, buffer.Dispose) };
 }
